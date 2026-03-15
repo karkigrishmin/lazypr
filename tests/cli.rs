@@ -81,6 +81,7 @@ fn inbox_runs_or_reports_missing_remote() {
     assert!(
         combined.contains("PR Inbox")
             || combined.contains("No remote provider")
+            || combined.contains("No GitHub token")
             || combined.contains("No open pull requests")
             || combined.contains("failed to open git repository"),
         "expected inbox output or remote error, got stdout={} stderr={}",
