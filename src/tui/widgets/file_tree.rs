@@ -1,30 +1,48 @@
+use std::collections::HashSet;
+
 use ratatui::prelude::*;
 use ratatui::widgets::{Block, Borders, List, ListItem};
 
+use crate::core::{FileCategory, ReviewPriority};
 use crate::tui::theme::Theme;
 
-/// A scrollable file list with status icons and selection highlighting.
+/// A single item in the file tree widget.
+#[allow(dead_code)]
+pub struct FileTreeItem {
+    /// File status icon (e.g. "A", "M", "D", "R").
+    pub status: String,
+    /// File path.
+    pub path: String,
+    /// Review priority tier.
+    pub priority: ReviewPriority,
+    /// File category.
+    pub category: FileCategory,
+}
+
+/// A scrollable file list with status icons, priority indicators, and selection highlighting.
 pub struct FileTreeWidget {
-    /// Items as (status_icon, file_path) pairs.
-    items: Vec<(String, String)>,
+    /// Items in the file tree.
+    pub items: Vec<FileTreeItem>,
     /// Currently selected index.
     selected: usize,
     /// Scroll offset for long lists.
     scroll_offset: usize,
+    /// Indices of files that have been skipped/reviewed.
+    pub skipped: HashSet<usize>,
 }
 
 impl FileTreeWidget {
-    /// Create a new file tree widget from a list of (status, path) pairs.
-    pub fn new(items: Vec<(String, String)>) -> Self {
+    /// Create a new file tree widget from a list of file tree items.
+    pub fn new(items: Vec<FileTreeItem>) -> Self {
         Self {
             items,
             selected: 0,
             scroll_offset: 0,
+            skipped: HashSet::new(),
         }
     }
 
     /// Return the currently selected index, or `None` if the list is empty.
-    #[allow(dead_code)]
     pub fn selected(&self) -> Option<usize> {
         if self.items.is_empty() {
             None
@@ -72,15 +90,40 @@ impl FileTreeWidget {
             .enumerate()
             .skip(scroll)
             .take(visible_height)
-            .map(|(i, (status, path))| {
-                let content = format!("[{status}] {path}");
+            .map(|(i, item)| {
+                let priority_indicator = match item.priority {
+                    ReviewPriority::Deep => "!!",
+                    ReviewPriority::Scan => "! ",
+                    ReviewPriority::Glance => ". ",
+                    ReviewPriority::Skip => "  ",
+                };
+
+                let content = format!(
+                    "{priority_indicator} [{status}] {path}",
+                    status = item.status,
+                    path = item.path
+                );
+
+                let is_skipped = self.skipped.contains(&i);
+
+                let fg_color = if is_skipped {
+                    theme.muted
+                } else {
+                    match item.priority {
+                        ReviewPriority::Deep => theme.deep,
+                        ReviewPriority::Scan => theme.scan,
+                        ReviewPriority::Glance => theme.glance,
+                        ReviewPriority::Skip => theme.skip_priority,
+                    }
+                };
+
                 let style = if i == self.selected {
                     Style::default()
-                        .fg(theme.fg)
+                        .fg(fg_color)
                         .bg(theme.highlight)
                         .add_modifier(Modifier::BOLD)
                 } else {
-                    Style::default().fg(theme.fg)
+                    Style::default().fg(fg_color)
                 };
                 ListItem::new(Line::from(content)).style(style)
             })

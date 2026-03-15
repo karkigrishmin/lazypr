@@ -18,6 +18,12 @@ pub enum Action {
     ScrollDown,
     /// Toggle the help overlay.
     ToggleHelp,
+    /// Skip/mark current file as reviewed.
+    SkipFile,
+    /// Select the current file (Enter key).
+    SelectFile,
+    /// Start file search (/ key). Phase 1: simple substring filter on file paths.
+    StartSearch,
     /// No action taken.
     None,
 }

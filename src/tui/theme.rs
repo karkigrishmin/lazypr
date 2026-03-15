@@ -30,6 +30,14 @@ pub struct Theme {
     pub status_bg: Color,
     /// Status bar foreground.
     pub status_fg: Color,
+    /// Deep priority color (red -- needs deep review).
+    pub deep: Color,
+    /// Scan priority color (yellow -- moderate review).
+    pub scan: Color,
+    /// Glance priority color (green -- quick look).
+    pub glance: Color,
+    /// Skip priority color (dim -- auto-skip).
+    pub skip_priority: Color,
 }
 
 impl Theme {
@@ -49,6 +57,10 @@ impl Theme {
             border: Color::DarkGray,
             status_bg: Color::Rgb(30, 30, 50),
             status_fg: Color::White,
+            deep: Color::Red,
+            scan: Color::Yellow,
+            glance: Color::Green,
+            skip_priority: Color::DarkGray,
         }
     }
 
@@ -69,6 +81,10 @@ impl Theme {
             border: Color::Gray,
             status_bg: Color::Rgb(230, 230, 240),
             status_fg: Color::Black,
+            deep: Color::Rgb(180, 0, 0),
+            scan: Color::Rgb(180, 120, 0),
+            glance: Color::Rgb(0, 128, 0),
+            skip_priority: Color::Gray,
         }
     }
 

@@ -14,5 +14,5 @@ pub mod progress_bar;
 pub mod status_bar;
 
 pub use diff_view::DiffViewWidget;
-pub use file_tree::FileTreeWidget;
+pub use file_tree::{FileTreeItem, FileTreeWidget};
 pub use status_bar::StatusBarWidget;
