@@ -35,6 +35,8 @@ chrono = { version = "0.4", features = ["serde"] }
 dirs = "6"
 ignore = "0.4"
 globset = "0.4"
+octocrab = "0.44"
+async-trait = "0.1"
 
 [dev-dependencies]
 insta = { version = "1.42", features = ["json", "yaml"] }
