@@ -2,17 +2,13 @@ use anyhow::Result;
 use clap::Parser;
 
 mod cli;
-#[allow(dead_code, unused_imports)]
 mod commands;
-#[allow(dead_code, unused_imports)]
 mod core;
-#[allow(dead_code, unused_imports)]
+#[allow(dead_code)]
 mod remote;
-#[allow(dead_code, unused_imports)]
 mod state;
-#[allow(dead_code, unused_imports)]
 mod tui;
-#[allow(dead_code, unused_imports)]
+#[allow(dead_code)]
 mod utils;
 
 fn main() -> Result<()> {

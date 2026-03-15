@@ -19,6 +19,7 @@ pub struct Git2DiffProvider {
 
 impl Git2DiffProvider {
     /// Create a provider from an already-opened repository.
+    #[allow(dead_code)]
     pub fn new(repo: git2::Repository) -> Self {
         Self { repo }
     }

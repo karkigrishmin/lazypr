@@ -4,6 +4,7 @@ use anyhow::{Context, Result};
 ///
 /// Returns `true` when there are no staged, unstaged, or untracked changes
 /// (excluding ignored files).
+#[allow(dead_code)]
 pub fn working_tree_clean(repo: &git2::Repository) -> Result<bool> {
     let statuses = repo
         .statuses(Some(

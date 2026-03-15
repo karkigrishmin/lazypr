@@ -24,6 +24,7 @@ impl FileTreeWidget {
     }
 
     /// Return the currently selected index, or `None` if the list is empty.
+    #[allow(dead_code)]
     pub fn selected(&self) -> Option<usize> {
         if self.items.is_empty() {
             None

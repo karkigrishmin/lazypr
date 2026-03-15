@@ -160,6 +160,7 @@ impl LazyprConfig {
     }
 
     /// Write configuration to `.lazypr/config.yml`.
+    #[allow(dead_code)]
     pub fn save(&self, repo_root: &Path) -> Result<()> {
         let base = store_path(repo_root);
         std::fs::create_dir_all(&base).with_context(|| format!("creating {}", base.display()))?;

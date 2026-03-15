@@ -25,8 +25,8 @@ pub fn run(cli: &Cli) -> Result<()> {
         .context("bare repositories are not supported")?;
     init_store(repo_root)?;
 
-    // Load config (used later when TUI is wired up)
-    let _config = LazyprConfig::load(repo_root)?;
+    // Load config
+    let config = LazyprConfig::load(repo_root)?;
 
     // Compute diff
     let diff = provider
@@ -38,29 +38,10 @@ pub fn run(cli: &Cli) -> Result<()> {
         let json =
             serde_json::to_string_pretty(&diff).context("failed to serialize diff to JSON")?;
         println!("{}", json);
-        return Ok(());
+    } else {
+        // Launch TUI
+        crate::tui::run(diff, config)?;
     }
-
-    // TUI mode — for now, print summary until TUI is wired in Step 6
-    println!("lazypr review: {} vs HEAD", base);
-    println!("  {} files changed", diff.summary.total_files);
-    println!(
-        "  +{} -{}",
-        diff.summary.total_additions, diff.summary.total_deletions
-    );
-    println!(
-        "  Estimated review time: {} min",
-        diff.summary.estimated_review_minutes
-    );
-    println!();
-    for file in &diff.files {
-        println!(
-            "  {:?} {} (+{} -{})",
-            file.status, file.path, file.stats.additions, file.stats.deletions
-        );
-    }
-    println!();
-    println!("(TUI coming in Phase 0 Step 6)");
 
     Ok(())
 }

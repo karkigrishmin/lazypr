@@ -15,8 +15,10 @@ pub struct App {
     /// Whether the help overlay is currently shown.
     pub show_help: bool,
     /// The diff data being reviewed.
+    #[allow(dead_code)]
     pub diff: DiffResult,
     /// Application configuration.
+    #[allow(dead_code)]
     pub config: LazyprConfig,
     /// The active color theme.
     pub theme: Theme,

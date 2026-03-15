@@ -5,6 +5,7 @@ use crate::core::errors::GitError;
 /// Get the current branch name (e.g. `"main"` or `"feature/foo"`).
 ///
 /// Returns an error if HEAD is detached or cannot be resolved.
+#[allow(dead_code)]
 pub fn current_branch(repo: &git2::Repository) -> Result<String> {
     let head = repo.head().context("failed to resolve HEAD")?;
     let name = head.shorthand().ok_or_else(|| GitError::BranchNotFound {

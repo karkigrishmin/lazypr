@@ -2,6 +2,7 @@ use ratatui::style::Color;
 
 /// Color theme for the TUI.
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct Theme {
     /// Background color.
     pub bg: Color,
@@ -52,6 +53,7 @@ impl Theme {
     }
 
     /// Light theme suitable for terminals with light backgrounds.
+    #[allow(dead_code)]
     pub fn light() -> Self {
         Self {
             bg: Color::Reset,
@@ -73,6 +75,7 @@ impl Theme {
     /// Detect terminal background and choose an appropriate theme.
     ///
     /// Terminal background detection is unreliable, so this defaults to dark.
+    #[allow(dead_code)]
     pub fn detect() -> Self {
         Self::dark()
     }
