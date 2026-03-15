@@ -1,7 +1,7 @@
-use crate::core::{DiffLine, Hunk, HunkClassification, LineKind};
+use crate::core::{Hunk, HunkClassification, LineKind};
 
 pub fn classify_hunk(hunk: &Hunk) -> HunkClassification {
-    let changed: Vec<&DiffLine> = hunk
+    let changed: Vec<_> = hunk
         .lines
         .iter()
         .filter(|l| matches!(l.kind, LineKind::Added | LineKind::Removed))
@@ -15,7 +15,7 @@ pub fn classify_hunk(hunk: &Hunk) -> HunkClassification {
         return HunkClassification::WhitespaceOnly;
     }
 
-    let non_blank_changed: Vec<&&DiffLine> = changed
+    let non_blank_changed: Vec<_> = changed
         .iter()
         .filter(|l| !l.content.trim().is_empty())
         .collect();
@@ -48,6 +48,8 @@ fn is_import_line(content: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use crate::core::DiffLine;
+
     use super::*;
 
     fn make_hunk(lines: Vec<(LineKind, &str)>) -> Hunk {
