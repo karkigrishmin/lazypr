@@ -30,12 +30,15 @@ fn version_exits_zero() {
 }
 
 #[test]
-fn split_prints_not_yet_implemented() {
-    lazypr()
-        .arg("split")
-        .assert()
-        .success()
-        .stdout(predicate::str::contains("not yet implemented"));
+fn split_runs_plan_generation() {
+    // Split now runs a real analysis; verify it produces plan output.
+    let output = lazypr().arg("split").output().expect("split should run");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("Split plan:"),
+        "expected split plan output, got: {}",
+        stdout
+    );
 }
 
 #[test]

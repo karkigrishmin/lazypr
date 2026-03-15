@@ -26,7 +26,17 @@ pub enum Commands {
     /// Review the current branch's changes
     Review,
     /// Split a large PR into smaller stacked PRs
-    Split,
+    Split {
+        /// Dry run: show the plan without creating branches
+        #[arg(long)]
+        dry_run: bool,
+        /// Branch name prefix for generated stacked branches
+        #[arg(long, default_value = "split")]
+        prefix: String,
+        /// Execute immediately without interactive TUI
+        #[arg(long)]
+        execute: bool,
+    },
     /// Pre-push analysis — find issues before you push
     Ghost,
     /// Show dependency impact for a file

@@ -16,7 +16,11 @@ fn main() -> Result<()> {
 
     match &cli.command {
         Some(cli::Commands::Review) | None => commands::review::run(&cli),
-        Some(cli::Commands::Split) => commands::split::run(&cli),
+        Some(cli::Commands::Split {
+            dry_run,
+            prefix,
+            execute,
+        }) => commands::split::run(&cli, *dry_run, prefix.clone(), *execute),
         Some(cli::Commands::Ghost) => commands::ghost::run(&cli),
         Some(cli::Commands::Impact { file }) => commands::impact::run(&cli, file),
         Some(cli::Commands::Inbox) => commands::inbox::run(&cli),
