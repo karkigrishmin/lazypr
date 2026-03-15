@@ -90,6 +90,21 @@ impl DependencyGraph {
             .map(|n| self.graph[n].as_str())
             .collect()
     }
+
+    /// Get a reference to the internal petgraph DiGraph.
+    pub fn inner_graph(&self) -> &DiGraph<String, ()> {
+        &self.graph
+    }
+
+    /// Look up the NodeIndex for a file path.
+    pub fn node_index(&self, path: &str) -> Option<NodeIndex> {
+        self.node_map.get(path).copied()
+    }
+
+    /// Get the file path label for a NodeIndex.
+    pub fn node_label(&self, idx: NodeIndex) -> &str {
+        &self.graph[idx]
+    }
 }
 
 #[cfg(test)]
