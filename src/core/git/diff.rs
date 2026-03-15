@@ -30,6 +30,13 @@ impl Git2DiffProvider {
         Ok(Self { repo })
     }
 
+    /// Open the repository at the given path.
+    #[allow(dead_code)]
+    pub fn open_at(path: &std::path::Path) -> Result<Self> {
+        let repo = git2::Repository::open(path).context("failed to open git repository at path")?;
+        Ok(Self { repo })
+    }
+
     /// Expose the underlying repository for callers that need branch utilities.
     pub fn repo(&self) -> &git2::Repository {
         &self.repo

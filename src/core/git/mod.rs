@@ -32,7 +32,7 @@ pub trait BlameProvider {
     fn blame(&self, path: &str, line: u32) -> Result<BlameInfo>;
 }
 
-/// Provides branch operations (stub for Phase 0).
+/// Provides branch operations.
 #[allow(dead_code)]
 pub trait BranchOperations {
     /// Create a new branch with the given name.
