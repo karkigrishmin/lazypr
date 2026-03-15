@@ -17,6 +17,8 @@ pub struct FileTreeItem {
     /// File category (used by future phases for grouping/display).
     #[allow(dead_code)]
     pub category: FileCategory,
+    /// Optional semantic diff summary (e.g. "+2fn ~1sig -1fn").
+    pub semantic_summary: Option<String>,
 }
 
 /// A scrollable file list with status icons, priority indicators, and selection highlighting.
@@ -107,7 +109,7 @@ impl FileTreeWidget {
                     " "
                 };
 
-                let content = format!(
+                let main_content = format!(
                     "{viewed_char} {priority_indicator} [{status}] {path}",
                     status = item.status,
                     path = item.path
@@ -126,15 +128,39 @@ impl FileTreeWidget {
                     }
                 };
 
-                let style = if i == self.selected {
-                    Style::default()
-                        .fg(fg_color)
-                        .bg(theme.highlight)
-                        .add_modifier(Modifier::BOLD)
+                let bg = if i == self.selected {
+                    Some(theme.highlight)
                 } else {
-                    Style::default().fg(fg_color)
+                    None
                 };
-                ListItem::new(Line::from(content)).style(style)
+
+                let main_style = {
+                    let mut s = Style::default().fg(fg_color);
+                    if let Some(bg_color) = bg {
+                        s = s.bg(bg_color);
+                    }
+                    if i == self.selected {
+                        s = s.add_modifier(Modifier::BOLD);
+                    }
+                    s
+                };
+
+                let mut spans = vec![Span::styled(main_content, main_style)];
+
+                if let Some(ref summary) = item.semantic_summary {
+                    if !summary.is_empty() {
+                        let summary_style = {
+                            let mut s = Style::default().fg(theme.muted);
+                            if let Some(bg_color) = bg {
+                                s = s.bg(bg_color);
+                            }
+                            s
+                        };
+                        spans.push(Span::styled(format!("  {summary}"), summary_style));
+                    }
+                }
+
+                ListItem::new(Line::from(spans))
             })
             .collect();
 

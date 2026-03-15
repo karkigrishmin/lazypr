@@ -64,6 +64,12 @@ impl App {
             return self.review_screen.handle_key(key);
         }
 
+        // When the checklist popup is active, delegate all keys to the review screen
+        // so navigation and toggle work without triggering global shortcuts.
+        if self.active_screen == ActiveScreen::Review && self.review_screen.is_checklist_active() {
+            return self.review_screen.handle_key(key);
+        }
+
         // When the review screen is in search mode, delegate all keys to it
         // so the user can type freely (q, ?, 1-4, etc.) in the search input.
         if self.active_screen == ActiveScreen::Review && self.review_screen.is_search_mode() {

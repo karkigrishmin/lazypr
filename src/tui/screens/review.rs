@@ -1,5 +1,5 @@
 use std::cell::Cell;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
@@ -9,11 +9,12 @@ use tui_input::backend::crossterm::EventHandler;
 use tui_input::Input;
 
 use crate::core::differ::interdiff::InterDiffResult;
+use crate::core::types::ChecklistItem;
 use crate::core::{DiffFile, DiffResult, ReviewNote};
 use crate::tui::theme::Theme;
 use crate::tui::widgets::{
-    DiffViewWidget, FileTreeItem, FileTreeWidget, NoteEditorAction, NoteEditorWidget,
-    ProgressBarWidget, StatusBarWidget,
+    ChecklistAction, ChecklistWidget, DiffViewWidget, FileTreeItem, FileTreeWidget,
+    NoteEditorAction, NoteEditorWidget, ProgressBarWidget, StatusBarWidget,
 };
 
 use super::{Action, Screen};
@@ -90,6 +91,10 @@ pub struct ReviewScreen {
     repo_root: PathBuf,
     /// Branch name.
     branch_name: String,
+    /// Active checklist popup (None when not showing).
+    checklist_widget: Option<ChecklistWidget>,
+    /// Checklist state: file path -> checklist items.
+    checklist_state: HashMap<String, Vec<ChecklistItem>>,
 }
 
 impl ReviewScreen {
@@ -103,6 +108,7 @@ impl ReviewScreen {
                 path: f.path.clone(),
                 priority: f.priority.clone(),
                 category: f.category.clone(),
+                semantic_summary: None,
             })
             .collect();
 
@@ -139,6 +145,8 @@ impl ReviewScreen {
             full_files: diff.files.clone(),
             repo_root: ctx.repo_root,
             branch_name: ctx.branch_name,
+            checklist_widget: None,
+            checklist_state: HashMap::new(),
         };
 
         // Set viewed indicators on file tree
@@ -157,6 +165,11 @@ impl ReviewScreen {
     /// Whether the note editor popup is currently active.
     pub fn is_note_editor_active(&self) -> bool {
         self.note_editor.is_some()
+    }
+
+    /// Whether the checklist popup is currently active.
+    pub fn is_checklist_active(&self) -> bool {
+        self.checklist_widget.is_some()
     }
 
     /// Get the set of viewed file indices (used for session lifecycle persistence).
@@ -233,6 +246,7 @@ impl ReviewScreen {
                     path: file.path.clone(),
                     priority: file.priority.clone(),
                     category: file.category.clone(),
+                    semantic_summary: None,
                 });
                 indices.push(i);
             }
@@ -266,6 +280,7 @@ impl ReviewScreen {
                 path: f.path.clone(),
                 priority: f.priority.clone(),
                 category: f.category.clone(),
+                semantic_summary: None,
             })
             .collect();
 
@@ -365,6 +380,38 @@ impl Screen for ReviewScreen {
                     return Action::None;
                 }
                 NoteEditorAction::Continue => return Action::None,
+            }
+        }
+
+        // Checklist modal: intercept all keys when active
+        if self.checklist_widget.is_some() {
+            // Pre-compute the original file index before taking the mutable borrow
+            let original_idx = self.file_tree.selected().and_then(|sel| {
+                let idx = self.map_to_original_idx(sel).unwrap_or(sel);
+                if idx < self.files.len() {
+                    Some(idx)
+                } else {
+                    None
+                }
+            });
+            let file_path = original_idx.map(|idx| self.files[idx].path.clone());
+
+            let checklist = self.checklist_widget.as_mut().unwrap();
+            match checklist.handle_key(key) {
+                ChecklistAction::Toggle(idx) => {
+                    checklist.toggle(idx);
+                    // Update checklist_state from the widget's items
+                    if let Some(path) = file_path {
+                        self.checklist_state
+                            .insert(path, checklist.items().to_vec());
+                    }
+                    return Action::ToggleChecklist;
+                }
+                ChecklistAction::Close => {
+                    self.checklist_widget = None;
+                    return Action::None;
+                }
+                ChecklistAction::Continue => return Action::None,
             }
         }
 
@@ -504,6 +551,26 @@ impl Screen for ReviewScreen {
                 } else {
                     Action::None
                 }
+            }
+            KeyCode::Char('c') => {
+                if !self.files.is_empty() {
+                    let original_idx = if let Some(sel) = self.file_tree.selected() {
+                        self.map_to_original_idx(sel).unwrap_or(sel)
+                    } else {
+                        self.current_file_idx
+                    };
+                    if original_idx < self.files.len() {
+                        let file_path = self.files[original_idx].path.clone();
+                        if let Some(items) = self.checklist_state.get(&file_path) {
+                            if !items.is_empty() {
+                                self.checklist_widget =
+                                    Some(ChecklistWidget::new(file_path, items.clone()));
+                                return Action::ToggleChecklist;
+                            }
+                        }
+                    }
+                }
+                Action::None
             }
             KeyCode::Enter => {
                 if self.active_pane == Pane::FileTree {
@@ -645,6 +712,7 @@ impl Screen for ReviewScreen {
             ("s", "skip"),
             ("v", "viewed"),
             ("n", "note"),
+            ("c", "checklist"),
             ("i", "interdiff"),
             ("Enter", "select"),
             ("/", "search"),
@@ -654,6 +722,11 @@ impl Screen for ReviewScreen {
         // Render note editor overlay on top if active
         if let Some(ref editor) = self.note_editor {
             editor.render(frame, area, theme);
+        }
+
+        // Render checklist overlay on top if active
+        if let Some(ref checklist) = self.checklist_widget {
+            checklist.render(frame, area, theme);
         }
     }
 }

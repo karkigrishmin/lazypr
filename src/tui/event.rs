@@ -29,6 +29,8 @@ pub enum Action {
     OpenNoteEditor,
     /// Toggle inter-diff mode (show only changes since last review).
     ToggleInterDiff,
+    /// Toggle the checklist popup.
+    ToggleChecklist,
     /// No action taken.
     None,
 }
