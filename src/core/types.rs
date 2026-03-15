@@ -378,6 +378,63 @@ pub struct ReviewNote {
 }
 
 // ---------------------------------------------------------------------------
+// Ghost analysis types
+// ---------------------------------------------------------------------------
+
+/// Severity of a ghost analysis finding.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum GhostSeverity {
+    /// Hard error — will likely cause build/runtime failure.
+    Error,
+    /// Warning — potential issue worth investigating.
+    Warning,
+    /// Info — observation, not necessarily a problem.
+    Info,
+}
+
+/// Category of a ghost analysis finding.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum GhostCategory {
+    /// A deleted file is still imported by another file.
+    BrokenImport,
+    /// A changed source file has no corresponding test file.
+    MissingTest,
+    /// High-impact change: many files depend on this changed file.
+    HighImpact {
+        /// Number of files that depend on the changed file.
+        dependent_count: usize,
+    },
+}
+
+/// A single finding from ghost analysis.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GhostFinding {
+    /// The file where the issue was found.
+    pub file: String,
+    /// Severity level.
+    pub severity: GhostSeverity,
+    /// Category of the finding.
+    pub category: GhostCategory,
+    /// Human-readable description.
+    pub message: String,
+    /// Related file (e.g., the file that has the broken import).
+    pub related_file: Option<String>,
+}
+
+/// Complete result of a ghost analysis.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct GhostResult {
+    /// All findings.
+    pub findings: Vec<GhostFinding>,
+    /// Number of errors.
+    pub error_count: usize,
+    /// Number of warnings.
+    pub warning_count: usize,
+    /// Number of info items.
+    pub info_count: usize,
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
