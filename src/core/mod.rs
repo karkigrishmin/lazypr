@@ -1,6 +1,4 @@
-#[allow(dead_code)]
 pub mod analyzer;
-#[allow(dead_code)]
 pub mod differ;
 #[allow(dead_code)]
 pub mod errors;

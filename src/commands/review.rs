@@ -29,9 +29,10 @@ pub fn run(cli: &Cli) -> Result<()> {
     let config = LazyprConfig::load(repo_root)?;
 
     // Compute diff
-    let diff = provider
+    let mut diff = provider
         .diff(&base, "HEAD")
         .context("failed to compute diff")?;
+    crate::core::differ::pipeline::analyze(&mut diff, &config.review);
 
     if cli.json {
         // JSON output mode
