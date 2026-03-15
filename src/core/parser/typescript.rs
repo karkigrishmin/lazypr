@@ -50,17 +50,6 @@ fn all_children(node: Node) -> Vec<Node> {
 // Import extraction
 // ---------------------------------------------------------------------------
 
-/// Extract the module source string from an `import_statement` or similar
-/// node by looking for the first `string` child.
-fn extract_string_source(node: Node, source: &str) -> Option<String> {
-    for child in all_children(node) {
-        if child.kind() == "string" {
-            return Some(strip_quotes(node_text(child, source)));
-        }
-    }
-    None
-}
-
 /// Walk an `import_clause` node to fill `default` and `names`.
 fn extract_import_clause(clause: Node, source: &str, import: &mut Import) {
     for child in all_children(clause) {

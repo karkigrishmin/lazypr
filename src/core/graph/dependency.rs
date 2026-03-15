@@ -11,6 +11,7 @@ pub struct DependencyGraph {
     node_map: HashMap<String, NodeIndex>,
 }
 
+#[allow(dead_code)]
 impl DependencyGraph {
     /// Build a dependency graph from a set of parsed files.
     /// Only imports with `resolved_path` set create edges.

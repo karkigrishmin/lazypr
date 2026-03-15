@@ -24,6 +24,7 @@ pub struct ImpactEntry {
 #[derive(Debug, Clone)]
 pub struct ImpactResult {
     /// The files that were changed (input).
+    #[allow(dead_code)]
     pub changed_files: Vec<String>,
     /// All files impacted by the changes.
     pub impacted: Vec<ImpactEntry>,

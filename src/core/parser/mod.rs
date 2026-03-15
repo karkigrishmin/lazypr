@@ -14,6 +14,7 @@ pub trait LanguageParser: Send + Sync {
     fn language(&self) -> Language;
 
     /// Whether this parser can handle files with the given extension.
+    #[allow(dead_code)]
     fn can_parse(&self, extension: &str) -> bool;
 
     /// Extract import statements from source code.
