@@ -70,12 +70,23 @@ fn impact_runs_analysis() {
 }
 
 #[test]
-fn inbox_shows_coming_soon() {
-    lazypr()
-        .arg("inbox")
-        .assert()
-        .success()
-        .stdout(predicate::str::contains("Coming soon"));
+fn inbox_runs_or_reports_missing_remote() {
+    // Inbox now attempts to connect to GitHub/GitLab.
+    // Without a token it will fail with a remote-detection error.
+    // With a token and valid remote it will show the PR dashboard.
+    let output = lazypr().arg("inbox").output().expect("inbox should run");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let combined = format!("{}{}", stdout, stderr);
+    assert!(
+        combined.contains("PR Inbox")
+            || combined.contains("No remote provider")
+            || combined.contains("No open pull requests")
+            || combined.contains("failed to open git repository"),
+        "expected inbox output or remote error, got stdout={} stderr={}",
+        stdout,
+        stderr
+    );
 }
 
 #[test]
