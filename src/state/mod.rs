@@ -1,7 +1,5 @@
 pub mod config;
-#[allow(dead_code)]
 pub mod notes;
-#[allow(dead_code)]
 pub mod review_session;
 pub mod store;
 
