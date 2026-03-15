@@ -1,0 +1,5 @@
+/target
+.lazypr/
+*.swp
+*.swo
+.DS_Store
