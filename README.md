@@ -20,6 +20,7 @@ GitHub's PR review experience is broken for large changesets:
 - **Syntax highlighting** — Full syntax highlighting via syntect
 - **Move detection** — Detects code moved between files using content hashing
 - **File classification** — Auto-categorizes: Source, Test, Config, Lock, Generated, Snapshot, etc.
+- **File churn** — Git history analysis boosts priority for frequently-changed files
 
 ### Review State
 - **Session tracking** — Remembers which files you've viewed across sessions
@@ -37,7 +38,14 @@ GitHub's PR review experience is broken for large changesets:
 - **Auto-grouping** — Clusters files into dependency-ordered review groups
 - **Size budgets** — Respects configurable target/max group sizes
 - **Stacked branches** — Creates git branches for each group
+- **Create PRs** — Optionally create GitHub draft PRs from split branches (`--create-prs`)
 - **Validation** — Checks that each group's imports resolve correctly
+
+### GitHub Integration
+- **PR inbox** — See your open PRs and review requests in the terminal
+- **GitHub provider** — Connects via `GITHUB_TOKEN` or `gh` CLI auth
+- **Split → PR** — Create stacked draft PRs directly from `lazypr split --execute --create-prs`
+- **Open in browser** — Press `o` in the inbox TUI to open a PR in your browser
 
 ### Multi-Language Parsers
 - **TypeScript/JavaScript** — Tree-sitter AST parser (imports, exports, functions)
@@ -95,6 +103,8 @@ lazypr split --dry-run
 | `lazypr split` | Generate a split plan for the PR |
 | `lazypr split --dry-run` | Preview split without creating branches |
 | `lazypr split --execute` | Create stacked branches |
+| `lazypr split --execute --create-prs` | Create branches + GitHub draft PRs |
+| `lazypr inbox` | PR inbox — your PRs and review requests |
 
 ### Global Flags
 
@@ -149,6 +159,10 @@ display:
   theme: auto
   syntax_highlighting: true
   side_by_side: false
+
+# Remote (optional — for inbox and split→PR)
+remote:
+  remote_name: origin  # git remote to detect provider from
 ```
 
 ### `.lazypr/checklist.yml`
@@ -171,10 +185,10 @@ display:
 ```
 +---------------------------------------------------+
 |              TUI Layer (ratatui)                   |
-|  ReviewScreen  SplitScreen  GhostScreen           |
+|  ReviewScreen  SplitScreen  InboxScreen  Ghost    |
 +---------------------------------------------------+
 |              Command Layer                         |
-|  review()  split()  ghost()  impact()             |
+|  review  split  ghost  impact  inbox              |
 +---------------------------------------------------+
 |              Core Engine (no IO)                   |
 |  Differ  Graph  Splitter  Analyzer  Parsers       |
@@ -182,11 +196,15 @@ display:
 |  Git Layer (git2)  |  State Layer (.lazypr/)       |
 |  diff, blame, log  |  sessions, notes, checklist   |
 +--------------------+------------------------------+
+|         Remote Layer (optional)                    |
+|         octocrab (GitHub) / GitLab                 |
++---------------------------------------------------+
 ```
 
 **Key rules:**
 - Core engine has no IO — takes data in, returns structured results
 - State stored in `.lazypr/` directory (gitignored)
+- Remote layer is optional — every feature works offline
 - Every command supports `--json` output
 
 ## Design Philosophy
@@ -204,7 +222,7 @@ display:
 - [x] Phase 2: Review state — Sessions, inter-diff, notes
 - [x] Phase 3: Ghost + Impact — Parsers, dependency graph, analysis
 - [x] Phase 4: Smart Split — Topological sort, grouping, stacked branches
-- [ ] Phase 5: Remote — GitHub/GitLab API, PR inbox
+- [x] Phase 5: Remote — GitHub API, PR inbox, split→PR creation
 - [x] Phase 6: Semantic diff — Function-level changes, checklists, churn
 
 ## Tech Stack
@@ -212,10 +230,12 @@ display:
 - **Rust** with 2021 edition
 - **ratatui** — Terminal UI framework
 - **git2** — Git operations (vendored OpenSSL)
+- **octocrab** — GitHub API client
 - **tree-sitter** — TypeScript/JavaScript parsing
 - **petgraph** — Dependency graph algorithms
 - **syntect** — Syntax highlighting
 - **xxhash** — Fast content hashing for move detection
+- **tokio** — Async runtime (for GitHub API)
 
 ## Contributing
 

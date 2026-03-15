@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-03-15
+
+### Added
+
+#### GitHub Integration
+- `lazypr inbox` — PR dashboard showing your PRs and review requests
+- GitHub provider via octocrab — connects with `GITHUB_TOKEN` or `gh` CLI auth
+- `lazypr split --execute --create-prs` — create stacked draft PRs on GitHub
+- Inbox TUI screen (tab 3) with PR list, status colors, and open-in-browser (`o` key)
+- PR caching in `.lazypr/cache/inbox.json` for offline viewing
+- Remote config section in `.lazypr/config.yml`
+- GitLab provider stub (ready for future implementation)
+
+#### Semantic Diff & Checklists
+- Semantic diff engine — detects added, deleted, and signature-changed functions
+- Inline semantic summaries in file tree (`+2fn ~1sig -1fn`)
+- File churn analysis — git history risk multiplier in heatmap scoring
+- Checklist system — load project-specific review checklists from `.lazypr/checklist.yml`
+- Checklist popup (`c` key) with glob pattern matching and persistent checked state
+
 ## [0.1.0] - 2026-03-15
 
 ### Added
@@ -53,4 +73,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configurable via `.lazypr/config.yml`
 - 289 tests with full CI pipeline
 
+[0.2.0]: https://github.com/karkigrishmin/lazypr/releases/tag/v0.2.0
 [0.1.0]: https://github.com/karkigrishmin/lazypr/releases/tag/v0.1.0
