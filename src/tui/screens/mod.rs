@@ -12,7 +12,7 @@ pub trait Screen {
     fn render(&self, frame: &mut Frame, area: Rect, theme: &Theme);
 }
 
-/// Ghost diff screen (stub).
+/// Ghost analysis screen.
 pub mod ghost;
 /// Help overlay popup.
 pub mod help;

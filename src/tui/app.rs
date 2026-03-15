@@ -45,7 +45,7 @@ impl App {
             review_screen,
             split_screen: SplitScreen::new(),
             inbox_screen: InboxScreen::new(),
-            ghost_screen: GhostScreen::new(),
+            ghost_screen: GhostScreen::new(None),
             help_overlay: HelpOverlay::new(),
         }
     }
