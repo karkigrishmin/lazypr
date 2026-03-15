@@ -23,6 +23,10 @@ pub struct LazyprConfig {
     /// Settings that control terminal display.
     #[serde(default)]
     pub display: DisplayConfig,
+
+    /// Settings for remote providers (GitHub, GitLab).
+    #[serde(default)]
+    pub remote: RemoteConfig,
 }
 
 /// Configuration for the review / analysis engine.
@@ -53,6 +57,18 @@ pub struct SplitConfig {
     pub max_group_size: usize,
 }
 
+/// Configuration for remote providers (GitHub, GitLab).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoteConfig {
+    /// Override the remote provider ("github" or "gitlab"). Auto-detected from remote URL if omitted.
+    #[serde(default)]
+    pub provider: Option<String>,
+
+    /// Git remote name to read the URL from.
+    #[serde(default = "default_remote_name")]
+    pub remote_name: String,
+}
+
 /// Configuration for terminal display.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DisplayConfig {
@@ -73,6 +89,10 @@ pub struct DisplayConfig {
 
 fn default_base_branch() -> String {
     "main".to_owned()
+}
+
+fn default_remote_name() -> String {
+    "origin".to_owned()
 }
 
 fn default_move_min_lines() -> usize {
@@ -108,6 +128,7 @@ impl Default for LazyprConfig {
             review: ReviewConfig::default(),
             split: SplitConfig::default(),
             display: DisplayConfig::default(),
+            remote: RemoteConfig::default(),
         }
     }
 }
@@ -127,6 +148,15 @@ impl Default for SplitConfig {
         Self {
             target_group_size: default_target_group_size(),
             max_group_size: default_max_group_size(),
+        }
+    }
+}
+
+impl Default for RemoteConfig {
+    fn default() -> Self {
+        Self {
+            provider: None,
+            remote_name: default_remote_name(),
         }
     }
 }
@@ -188,6 +218,13 @@ mod tests {
         assert_eq!(cfg.display.theme, "auto");
         assert!(cfg.display.syntax_highlighting);
         assert!(!cfg.display.side_by_side);
+    }
+
+    #[test]
+    fn default_config_includes_remote() {
+        let cfg = LazyprConfig::default();
+        assert_eq!(cfg.remote.remote_name, "origin");
+        assert!(cfg.remote.provider.is_none());
     }
 
     #[test]
