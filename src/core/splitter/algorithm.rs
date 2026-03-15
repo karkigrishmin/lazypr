@@ -277,6 +277,7 @@ fn compute_group_stats_from_map(
 }
 
 /// Compute aggregate stats for a group from the full list of DiffFiles.
+#[allow(dead_code)]
 pub fn compute_group_stats(group_files: &[String], all_files: &[DiffFile]) -> GroupStats {
     let file_map: HashMap<&str, &DiffFile> =
         all_files.iter().map(|f| (f.path.as_str(), f)).collect();

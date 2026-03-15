@@ -5,7 +5,6 @@ pub mod errors;
 pub mod git;
 pub mod graph;
 pub mod parser;
-#[allow(dead_code)]
 pub mod splitter;
 pub mod types;
 
