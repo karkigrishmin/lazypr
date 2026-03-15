@@ -7,7 +7,6 @@ use crate::core::{FileCategory, ReviewPriority};
 use crate::tui::theme::Theme;
 
 /// A single item in the file tree widget.
-#[allow(dead_code)]
 pub struct FileTreeItem {
     /// File status icon (e.g. "A", "M", "D", "R").
     pub status: String,
@@ -15,7 +14,8 @@ pub struct FileTreeItem {
     pub path: String,
     /// Review priority tier.
     pub priority: ReviewPriority,
-    /// File category.
+    /// File category (used by future phases for grouping/display).
+    #[allow(dead_code)]
     pub category: FileCategory,
 }
 

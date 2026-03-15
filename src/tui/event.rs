@@ -1,6 +1,5 @@
 /// Actions that can be taken in the TUI.
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[allow(dead_code)]
 pub enum Action {
     /// Exit the application.
     Quit,

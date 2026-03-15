@@ -2,7 +2,6 @@ use ratatui::style::Color;
 
 /// Color theme for the TUI.
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub struct Theme {
     /// Background color.
     pub bg: Color,
@@ -11,12 +10,14 @@ pub struct Theme {
     /// Primary accent color.
     pub primary: Color,
     /// Secondary accent color.
+    #[allow(dead_code)]
     pub secondary: Color,
     /// Success color (green) -- used for added lines.
     pub success: Color,
     /// Error color (red) -- used for removed lines.
     pub error: Color,
     /// Warning color (yellow) -- used for scan priority.
+    #[allow(dead_code)]
     pub warning: Color,
     /// Info color (cyan) -- used for moved lines.
     pub info: Color,
