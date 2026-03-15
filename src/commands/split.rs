@@ -9,7 +9,13 @@ use crate::core::splitter::executor::{execute_split, ExecuteOptions};
 use crate::core::splitter::validator::validate_plan;
 use crate::state::{init_store, LazyprConfig};
 
-pub fn run(cli: &Cli, dry_run: bool, prefix: String, execute: bool) -> Result<()> {
+pub fn run(
+    cli: &Cli,
+    dry_run: bool,
+    prefix: String,
+    execute: bool,
+    create_prs: bool,
+) -> Result<()> {
     let provider = Git2DiffProvider::open().context("failed to open git repository")?;
     let repo = provider.repo();
     let repo_root = repo
@@ -122,7 +128,7 @@ pub fn run(cli: &Cli, dry_run: bool, prefix: String, execute: bool) -> Result<()
     // Execute if requested
     if execute || dry_run {
         let options = ExecuteOptions {
-            base_branch: base,
+            base_branch: base.clone(),
             branch_prefix: prefix,
             dry_run,
         };
@@ -135,6 +141,65 @@ pub fn run(cli: &Cli, dry_run: bool, prefix: String, execute: bool) -> Result<()
         }
         for branch in &result.branches {
             println!("  {} ({} files)", branch.branch_name, branch.file_count);
+        }
+
+        // Create PRs if requested (requires --execute, not --dry-run)
+        if create_prs && execute && !dry_run {
+            let remote = crate::remote::detect_provider(repo, &config.remote)?
+                .context("No remote provider detected. Set GITHUB_TOKEN.")?;
+
+            let rt = tokio::runtime::Runtime::new().context("failed to create async runtime")?;
+
+            println!("\nCreating pull requests...");
+
+            for (i, branch_result) in result.branches.iter().enumerate() {
+                // Push the branch
+                let push_status = std::process::Command::new("git")
+                    .args(["push", "-u", "origin", &branch_result.branch_name])
+                    .status()
+                    .context("failed to run git push")?;
+
+                if !push_status.success() {
+                    eprintln!(
+                        "  Warning: failed to push branch {}",
+                        branch_result.branch_name
+                    );
+                    continue;
+                }
+
+                // Determine base branch for this PR
+                let pr_base = if i == 0 {
+                    base.clone()
+                } else {
+                    result.branches[i - 1].branch_name.clone()
+                };
+
+                let group = &plan.groups[i];
+                let pr = rt.block_on(remote.create_pull_request(
+                    &crate::remote::CreatePullRequest {
+                        title: format!("[{}/{}] {}", i + 1, result.branches.len(), group.name),
+                        body: format!(
+                            "Part {} of {} — {}\n\nFiles:\n{}",
+                            i + 1,
+                            result.branches.len(),
+                            group.name,
+                            group
+                                .files
+                                .iter()
+                                .map(|f| format!("- {}", f))
+                                .collect::<Vec<_>>()
+                                .join("\n")
+                        ),
+                        head: branch_result.branch_name.clone(),
+                        base: pr_base,
+                        draft: true,
+                    },
+                ))?;
+
+                println!("  PR #{}: {}", pr.number, pr.url);
+            }
+        } else if create_prs && !execute {
+            println!("\nNote: --create-prs requires --execute to create actual branches first.");
         }
     }
 

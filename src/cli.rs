@@ -36,6 +36,9 @@ pub enum Commands {
         /// Execute immediately without interactive TUI
         #[arg(long)]
         execute: bool,
+        /// Create GitHub/GitLab PRs for each split branch (requires --execute)
+        #[arg(long)]
+        create_prs: bool,
     },
     /// Pre-push analysis — find issues before you push
     Ghost,
