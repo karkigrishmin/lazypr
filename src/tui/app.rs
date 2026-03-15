@@ -5,7 +5,9 @@ use crate::core::DiffResult;
 use crate::state::LazyprConfig;
 
 use super::event::{Action, ActiveScreen};
-use super::screens::{GhostScreen, HelpOverlay, InboxScreen, ReviewScreen, Screen, SplitScreen};
+use super::screens::{
+    GhostScreen, HelpOverlay, InboxScreen, ReviewContext, ReviewScreen, Screen, SplitScreen,
+};
 use super::theme::Theme;
 
 /// Top-level TUI application state.
@@ -30,10 +32,10 @@ pub struct App {
 }
 
 impl App {
-    /// Create a new application with the given diff data and configuration.
-    pub fn new(diff: DiffResult, config: LazyprConfig) -> Self {
+    /// Create a new application with the given diff data, configuration, and review context.
+    pub fn new(diff: DiffResult, config: LazyprConfig, ctx: ReviewContext) -> Self {
         let theme = Theme::dark();
-        let review_screen = ReviewScreen::new(&diff);
+        let review_screen = ReviewScreen::new(&diff, ctx);
         Self {
             active_screen: ActiveScreen::Review,
             show_help: false,
@@ -48,8 +50,21 @@ impl App {
         }
     }
 
+    /// Get a reference to the review screen (used by Task 7 session lifecycle).
+    #[allow(dead_code)]
+    pub fn review_screen(&self) -> &ReviewScreen {
+        &self.review_screen
+    }
+
     /// Process a key event and return the resulting action.
     pub fn handle_key(&mut self, key: KeyEvent) -> Action {
+        // When the note editor is active, delegate all keys to the review screen
+        // so the user can type freely without triggering global shortcuts.
+        if self.active_screen == ActiveScreen::Review && self.review_screen.is_note_editor_active()
+        {
+            return self.review_screen.handle_key(key);
+        }
+
         // When the review screen is in search mode, delegate all keys to it
         // so the user can type freely (q, ?, 1-4, etc.) in the search input.
         if self.active_screen == ActiveScreen::Review && self.review_screen.is_search_mode() {

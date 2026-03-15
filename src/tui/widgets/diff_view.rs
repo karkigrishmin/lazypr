@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::sync::LazyLock;
 
 use ratatui::prelude::*;
@@ -29,6 +30,10 @@ pub struct DiffViewWidget {
     scroll_offset: usize,
     /// Cached highlighted spans for each line.
     highlighted_lines: Vec<Vec<Span<'static>>>,
+    /// Cursor position (index into `lines` vec, not scroll-relative).
+    cursor_line: usize,
+    /// Line numbers that have notes attached.
+    note_lines: HashSet<u32>,
 }
 
 /// Build syntax-highlighted spans for all lines, carrying parser state across lines.
@@ -67,42 +72,81 @@ impl DiffViewWidget {
             lines,
             scroll_offset: 0,
             highlighted_lines,
+            cursor_line: 0,
+            note_lines: HashSet::new(),
         }
     }
 
-    /// Scroll the view down by one line.
+    /// Move cursor down by one line (scroll_down delegates here).
     pub fn scroll_down(&mut self) {
-        if self.scroll_offset < self.lines.len().saturating_sub(1) {
-            self.scroll_offset += 1;
+        self.cursor_down();
+    }
+
+    /// Move cursor up by one line (scroll_up delegates here).
+    pub fn scroll_up(&mut self) {
+        self.cursor_up();
+    }
+
+    /// Move cursor down by one line.
+    pub fn cursor_down(&mut self) {
+        if self.cursor_line < self.lines.len().saturating_sub(1) {
+            self.cursor_line += 1;
         }
     }
 
-    /// Scroll the view up by one line.
-    pub fn scroll_up(&mut self) {
-        self.scroll_offset = self.scroll_offset.saturating_sub(1);
+    /// Move cursor up by one line.
+    pub fn cursor_up(&mut self) {
+        self.cursor_line = self.cursor_line.saturating_sub(1);
+    }
+
+    /// Get the new_line_no at the cursor position (for attaching notes).
+    pub fn cursor_line_no(&self) -> Option<u32> {
+        self.lines.get(self.cursor_line).and_then(|l| l.new_line_no)
+    }
+
+    /// Set which line numbers have notes.
+    pub fn set_note_lines(&mut self, lines: HashSet<u32>) {
+        self.note_lines = lines;
+    }
+
+    /// Adjust scroll_offset to keep cursor_line visible within the given height.
+    pub fn ensure_cursor_visible(&mut self, visible_height: usize) {
+        if visible_height == 0 {
+            return;
+        }
+        if self.cursor_line < self.scroll_offset {
+            self.scroll_offset = self.cursor_line;
+        } else if self.cursor_line >= self.scroll_offset + visible_height {
+            self.scroll_offset = self.cursor_line.saturating_sub(visible_height - 1);
+        }
     }
 
     /// Scroll down by half a page.
     pub fn scroll_half_page_down(&mut self, visible_height: usize) {
         let half = visible_height / 2;
         let max = self.lines.len().saturating_sub(1);
+        self.cursor_line = (self.cursor_line + half).min(max);
         self.scroll_offset = (self.scroll_offset + half).min(max);
     }
 
     /// Scroll up by half a page.
     pub fn scroll_half_page_up(&mut self, visible_height: usize) {
         let half = visible_height / 2;
+        self.cursor_line = self.cursor_line.saturating_sub(half);
         self.scroll_offset = self.scroll_offset.saturating_sub(half);
     }
 
     /// Scroll to the very top.
     pub fn scroll_to_top(&mut self) {
         self.scroll_offset = 0;
+        self.cursor_line = 0;
     }
 
     /// Scroll to the very bottom.
     pub fn scroll_to_bottom(&mut self) {
-        self.scroll_offset = self.lines.len().saturating_sub(1);
+        let max = self.lines.len().saturating_sub(1);
+        self.scroll_offset = max;
+        self.cursor_line = max;
     }
 
     /// Return the visible height for the given area (inner area minus block borders).
@@ -124,11 +168,20 @@ impl DiffViewWidget {
         let inner = block.inner(area);
         let visible_height = inner.height as usize;
 
+        // Auto-scroll to keep cursor visible (local calculation since render takes &self)
+        let effective_scroll = if self.cursor_line < self.scroll_offset {
+            self.cursor_line
+        } else if visible_height > 0 && self.cursor_line >= self.scroll_offset + visible_height {
+            self.cursor_line.saturating_sub(visible_height - 1)
+        } else {
+            self.scroll_offset
+        };
+
         let styled_lines: Vec<Line> = self
             .lines
             .iter()
             .enumerate()
-            .skip(self.scroll_offset)
+            .skip(effective_scroll)
             .take(visible_height)
             .map(|(idx, line)| {
                 let (prefix, diff_color, modifier) = match line.kind {
@@ -139,7 +192,17 @@ impl DiffViewWidget {
                     LineKind::MovedEdited => ("~", theme.info, Modifier::ITALIC),
                 };
 
-                // Format line numbers: {old:>4} {new:>4}
+                // Note indicator: show '*' after line numbers for lines with notes
+                let note_indicator = if line
+                    .new_line_no
+                    .is_some_and(|n| self.note_lines.contains(&n))
+                {
+                    "*"
+                } else {
+                    " "
+                };
+
+                // Format line numbers: {old:>4} {new:>4}{note_indicator}
                 let old_no = line
                     .old_line_no
                     .map(|n| format!("{n:>4}"))
@@ -151,7 +214,7 @@ impl DiffViewWidget {
 
                 // Gutter span (line numbers) in muted color
                 let gutter = Span::styled(
-                    format!("{old_no} {new_no} "),
+                    format!("{old_no} {new_no}{note_indicator}"),
                     Style::default().fg(theme.muted),
                 );
 
@@ -177,7 +240,12 @@ impl DiffViewWidget {
                 spans.push(prefix_span);
                 spans.extend(content_spans);
 
-                Line::from(spans)
+                // Highlight cursor line
+                if idx == self.cursor_line {
+                    Line::from(spans).patch_style(Style::default().bg(theme.highlight))
+                } else {
+                    Line::from(spans)
+                }
             })
             .collect();
 

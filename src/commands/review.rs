@@ -41,7 +41,7 @@ pub fn run(cli: &Cli) -> Result<()> {
         println!("{}", json);
     } else {
         // Launch TUI
-        crate::tui::run(diff, config)?;
+        crate::tui::run(diff, config, crate::tui::screens::ReviewContext::default())?;
     }
 
     Ok(())

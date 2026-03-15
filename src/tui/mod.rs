@@ -11,6 +11,7 @@ use crate::core::DiffResult;
 use crate::state::LazyprConfig;
 
 use self::app::App;
+use self::screens::ReviewContext;
 
 /// Application state and main loop driver.
 pub mod app;
@@ -23,8 +24,8 @@ pub mod theme;
 /// Reusable TUI widgets (file tree, diff view, status bar, etc.).
 pub mod widgets;
 
-/// Run the TUI application with the given diff data and configuration.
-pub fn run(diff: DiffResult, config: LazyprConfig) -> Result<()> {
+/// Run the TUI application with the given diff data, configuration, and review context.
+pub fn run(diff: DiffResult, config: LazyprConfig, ctx: ReviewContext) -> Result<()> {
     // Setup terminal
     enable_raw_mode().context("failed to enable raw mode")?;
     let mut stdout = io::stdout();
@@ -42,7 +43,7 @@ pub fn run(diff: DiffResult, config: LazyprConfig) -> Result<()> {
     }));
 
     // Create and run app
-    let mut app = App::new(diff, config);
+    let mut app = App::new(diff, config, ctx);
     let result = run_app(&mut terminal, &mut app);
 
     // Restore terminal

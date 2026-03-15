@@ -81,6 +81,51 @@ impl Screen for HelpOverlay {
                 ),
                 Span::styled("Switch screen", Style::default().fg(theme.fg)),
             ]),
+            Line::from(vec![
+                Span::styled(
+                    "  s          ",
+                    Style::default()
+                        .fg(theme.primary)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled("Skip file", Style::default().fg(theme.fg)),
+            ]),
+            Line::from(vec![
+                Span::styled(
+                    "  v          ",
+                    Style::default()
+                        .fg(theme.primary)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled("Mark viewed", Style::default().fg(theme.fg)),
+            ]),
+            Line::from(vec![
+                Span::styled(
+                    "  n          ",
+                    Style::default()
+                        .fg(theme.primary)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled("Add note", Style::default().fg(theme.fg)),
+            ]),
+            Line::from(vec![
+                Span::styled(
+                    "  i          ",
+                    Style::default()
+                        .fg(theme.primary)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled("Inter-diff", Style::default().fg(theme.fg)),
+            ]),
+            Line::from(vec![
+                Span::styled(
+                    "  /          ",
+                    Style::default()
+                        .fg(theme.primary)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled("Search files", Style::default().fg(theme.fg)),
+            ]),
             Line::from(""),
             Line::from(Span::styled(
                 "  Press any key to close",

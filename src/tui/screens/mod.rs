@@ -26,5 +26,5 @@ pub mod split;
 pub use ghost::GhostScreen;
 pub use help::HelpOverlay;
 pub use inbox::InboxScreen;
-pub use review::ReviewScreen;
+pub use review::{ReviewContext, ReviewScreen};
 pub use split::SplitScreen;

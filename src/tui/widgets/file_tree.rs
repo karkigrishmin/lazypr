@@ -29,6 +29,8 @@ pub struct FileTreeWidget {
     scroll_offset: usize,
     /// Indices of files that have been skipped/reviewed.
     pub skipped: HashSet<usize>,
+    /// Indices of files that have been marked as viewed.
+    pub viewed: HashSet<usize>,
 }
 
 impl FileTreeWidget {
@@ -39,6 +41,7 @@ impl FileTreeWidget {
             selected: 0,
             scroll_offset: 0,
             skipped: HashSet::new(),
+            viewed: HashSet::new(),
         }
     }
 
@@ -98,8 +101,14 @@ impl FileTreeWidget {
                     ReviewPriority::Skip => "  ",
                 };
 
+                let viewed_char = if self.viewed.contains(&i) {
+                    "\u{2713}"
+                } else {
+                    " "
+                };
+
                 let content = format!(
-                    "{priority_indicator} [{status}] {path}",
+                    "{viewed_char} {priority_indicator} [{status}] {path}",
                     status = item.status,
                     path = item.path
                 );

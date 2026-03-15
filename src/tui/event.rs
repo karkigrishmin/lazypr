@@ -23,6 +23,12 @@ pub enum Action {
     SelectFile,
     /// Start file search (/ key). Phase 1: simple substring filter on file paths.
     StartSearch,
+    /// Mark current file as viewed.
+    MarkViewed,
+    /// Open the note editor popup.
+    OpenNoteEditor,
+    /// Toggle inter-diff mode (show only changes since last review).
+    ToggleInterDiff,
     /// No action taken.
     None,
 }
