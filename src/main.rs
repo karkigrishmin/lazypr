@@ -4,7 +4,6 @@ use clap::Parser;
 mod cli;
 mod commands;
 mod core;
-#[allow(dead_code)]
 mod remote;
 mod state;
 mod tui;

@@ -80,6 +80,7 @@ pub struct CreatePullRequest {
 
 /// Filters for listing pull requests.
 #[derive(Debug, Clone, Default)]
+#[allow(dead_code)]
 pub struct PrFilters {
     /// Filter by author login.
     pub author: Option<String>,
@@ -94,6 +95,7 @@ pub struct PrFilters {
 // ---------------------------------------------------------------------------
 
 /// Trait abstracting remote providers (GitHub, GitLab).
+#[allow(dead_code)]
 #[async_trait::async_trait]
 pub trait RemoteProvider: Send + Sync {
     /// Get the authenticated user's login name.
