@@ -6,7 +6,7 @@ use ratatui::widgets::{Block, Borders, Paragraph};
 use tui_input::backend::crossterm::EventHandler;
 use tui_input::Input;
 
-use crate::core::{DiffFile, DiffResult, FileStatus};
+use crate::core::{DiffFile, DiffResult};
 use crate::tui::theme::Theme;
 use crate::tui::widgets::{DiffViewWidget, FileTreeItem, FileTreeWidget, StatusBarWidget};
 
@@ -48,19 +48,11 @@ impl ReviewScreen {
         let file_tree_items: Vec<FileTreeItem> = diff
             .files
             .iter()
-            .map(|f| {
-                let status_char = match f.status {
-                    FileStatus::Added => "A",
-                    FileStatus::Modified => "M",
-                    FileStatus::Deleted => "D",
-                    FileStatus::Renamed => "R",
-                };
-                FileTreeItem {
-                    status: status_char.to_string(),
-                    path: f.path.clone(),
-                    priority: f.priority.clone(),
-                    category: f.category.clone(),
-                }
+            .map(|f| FileTreeItem {
+                status: f.status.as_char().to_string(),
+                path: f.path.clone(),
+                priority: f.priority.clone(),
+                category: f.category.clone(),
             })
             .collect();
 
@@ -80,6 +72,11 @@ impl ReviewScreen {
             search_query: String::new(),
             filtered_indices: None,
         }
+    }
+
+    /// Whether the review screen is currently in search mode.
+    pub fn is_search_mode(&self) -> bool {
+        self.search_mode
     }
 
     /// Build a DiffViewWidget for the file at the given index.
@@ -132,14 +129,8 @@ impl ReviewScreen {
 
         for (i, file) in self.files.iter().enumerate() {
             if file.path.to_lowercase().contains(&query_lower) {
-                let status_char = match file.status {
-                    FileStatus::Added => "A",
-                    FileStatus::Modified => "M",
-                    FileStatus::Deleted => "D",
-                    FileStatus::Renamed => "R",
-                };
                 filtered_items.push(FileTreeItem {
-                    status: status_char.to_string(),
+                    status: file.status.as_char().to_string(),
                     path: file.path.clone(),
                     priority: file.priority.clone(),
                     category: file.category.clone(),
@@ -166,19 +157,11 @@ impl ReviewScreen {
         let file_tree_items: Vec<FileTreeItem> = self
             .files
             .iter()
-            .map(|f| {
-                let status_char = match f.status {
-                    FileStatus::Added => "A",
-                    FileStatus::Modified => "M",
-                    FileStatus::Deleted => "D",
-                    FileStatus::Renamed => "R",
-                };
-                FileTreeItem {
-                    status: status_char.to_string(),
-                    path: f.path.clone(),
-                    priority: f.priority.clone(),
-                    category: f.category.clone(),
-                }
+            .map(|f| FileTreeItem {
+                status: f.status.as_char().to_string(),
+                path: f.path.clone(),
+                priority: f.priority.clone(),
+                category: f.category.clone(),
             })
             .collect();
 
@@ -269,8 +252,10 @@ impl Screen for ReviewScreen {
                             self.skipped_files.insert(original_idx);
                             self.file_tree.skipped.insert(sel);
                         }
+                        Action::SkipFile
+                    } else {
+                        Action::None
                     }
-                    Action::SkipFile
                 } else {
                     Action::None
                 }

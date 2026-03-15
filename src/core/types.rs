@@ -22,6 +22,18 @@ pub enum FileStatus {
     Renamed,
 }
 
+impl FileStatus {
+    /// Return a single-character abbreviation for the status.
+    pub fn as_char(&self) -> &str {
+        match self {
+            FileStatus::Added => "A",
+            FileStatus::Modified => "M",
+            FileStatus::Deleted => "D",
+            FileStatus::Renamed => "R",
+        }
+    }
+}
+
 /// Broad category for a file based on its path and extension.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum FileCategory {

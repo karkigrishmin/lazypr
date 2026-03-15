@@ -50,6 +50,12 @@ impl App {
 
     /// Process a key event and return the resulting action.
     pub fn handle_key(&mut self, key: KeyEvent) -> Action {
+        // When the review screen is in search mode, delegate all keys to it
+        // so the user can type freely (q, ?, 1-4, etc.) in the search input.
+        if self.active_screen == ActiveScreen::Review && self.review_screen.is_search_mode() {
+            return self.review_screen.handle_key(key);
+        }
+
         // Global keys that work regardless of screen
         match key.code {
             KeyCode::Char('q') => return Action::Quit,
