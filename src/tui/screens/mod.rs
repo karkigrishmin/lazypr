@@ -16,7 +16,7 @@ pub trait Screen {
 pub mod ghost;
 /// Help overlay popup.
 pub mod help;
-/// PR inbox screen (stub).
+/// PR inbox screen.
 pub mod inbox;
 /// Primary diff review screen.
 pub mod review;

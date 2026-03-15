@@ -31,6 +31,8 @@ pub enum Action {
     ToggleInterDiff,
     /// Toggle the checklist popup.
     ToggleChecklist,
+    /// Open the selected item in the web browser.
+    OpenInBrowser,
     /// No action taken.
     None,
 }

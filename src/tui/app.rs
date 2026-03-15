@@ -44,7 +44,7 @@ impl App {
             theme,
             review_screen,
             split_screen: SplitScreen::new(None),
-            inbox_screen: InboxScreen::new(),
+            inbox_screen: InboxScreen::new(vec![], vec![]),
             ghost_screen: GhostScreen::new(None),
             help_overlay: HelpOverlay::new(),
         }
