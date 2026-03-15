@@ -43,7 +43,7 @@ impl App {
             config,
             theme,
             review_screen,
-            split_screen: SplitScreen::new(),
+            split_screen: SplitScreen::new(None),
             inbox_screen: InboxScreen::new(),
             ghost_screen: GhostScreen::new(None),
             help_overlay: HelpOverlay::new(),
