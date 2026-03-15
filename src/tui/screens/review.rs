@@ -9,7 +9,7 @@ use tui_input::backend::crossterm::EventHandler;
 use tui_input::Input;
 
 use crate::core::differ::interdiff::InterDiffResult;
-use crate::core::types::ChecklistItem;
+use crate::core::types::{ChecklistItem, FunctionChangeKind, SemanticDiffFile};
 use crate::core::{DiffFile, DiffResult, ReviewNote};
 use crate::tui::theme::Theme;
 use crate::tui::widgets::{
@@ -40,6 +40,8 @@ pub struct ReviewContext {
     pub repo_root: PathBuf,
     /// Branch name (for saving notes to disk).
     pub branch_name: String,
+    /// Checklist state: file path -> checklist items.
+    pub checklist: HashMap<String, Vec<ChecklistItem>>,
 }
 
 impl Default for ReviewContext {
@@ -50,6 +52,7 @@ impl Default for ReviewContext {
             viewed_files: Vec::new(),
             repo_root: PathBuf::new(),
             branch_name: String::new(),
+            checklist: HashMap::new(),
         }
     }
 }
@@ -97,6 +100,40 @@ pub struct ReviewScreen {
     checklist_state: HashMap<String, Vec<ChecklistItem>>,
 }
 
+/// Build a compact summary string from a semantic diff (e.g. "+2fn ~1sig -1fn").
+fn build_semantic_summary(sd: &SemanticDiffFile) -> Option<String> {
+    let added = sd
+        .changes
+        .iter()
+        .filter(|c| c.kind == FunctionChangeKind::Added)
+        .count();
+    let deleted = sd
+        .changes
+        .iter()
+        .filter(|c| c.kind == FunctionChangeKind::Deleted)
+        .count();
+    let sig_changed = sd
+        .changes
+        .iter()
+        .filter(|c| c.kind == FunctionChangeKind::SignatureChanged)
+        .count();
+    let mut parts = Vec::new();
+    if added > 0 {
+        parts.push(format!("+{}fn", added));
+    }
+    if sig_changed > 0 {
+        parts.push(format!("~{}sig", sig_changed));
+    }
+    if deleted > 0 {
+        parts.push(format!("-{}fn", deleted));
+    }
+    if parts.is_empty() {
+        None
+    } else {
+        Some(parts.join(" "))
+    }
+}
+
 impl ReviewScreen {
     /// Create a new review screen from a diff result and review context.
     pub fn new(diff: &DiffResult, ctx: ReviewContext) -> Self {
@@ -108,7 +145,7 @@ impl ReviewScreen {
                 path: f.path.clone(),
                 priority: f.priority.clone(),
                 category: f.category.clone(),
-                semantic_summary: None,
+                semantic_summary: f.semantic_diff.as_ref().and_then(build_semantic_summary),
             })
             .collect();
 
@@ -146,7 +183,7 @@ impl ReviewScreen {
             repo_root: ctx.repo_root,
             branch_name: ctx.branch_name,
             checklist_widget: None,
-            checklist_state: HashMap::new(),
+            checklist_state: ctx.checklist,
         };
 
         // Set viewed indicators on file tree
@@ -185,6 +222,11 @@ impl ReviewScreen {
     /// Get the current file list (used for session lifecycle persistence).
     pub fn files(&self) -> &[DiffFile] {
         &self.files
+    }
+
+    /// Get the checklist state (used for session lifecycle persistence).
+    pub fn checklist_state(&self) -> &HashMap<String, Vec<ChecklistItem>> {
+        &self.checklist_state
     }
 
     /// Build a DiffViewWidget for the file at the given index.
@@ -246,7 +288,7 @@ impl ReviewScreen {
                     path: file.path.clone(),
                     priority: file.priority.clone(),
                     category: file.category.clone(),
-                    semantic_summary: None,
+                    semantic_summary: file.semantic_diff.as_ref().and_then(build_semantic_summary),
                 });
                 indices.push(i);
             }
@@ -280,7 +322,7 @@ impl ReviewScreen {
                 path: f.path.clone(),
                 priority: f.priority.clone(),
                 category: f.category.clone(),
-                semantic_summary: None,
+                semantic_summary: f.semantic_diff.as_ref().and_then(build_semantic_summary),
             })
             .collect();
 

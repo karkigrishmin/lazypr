@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::io;
 
 use anyhow::{Context, Result};
@@ -9,6 +9,7 @@ use crossterm::{
 };
 use ratatui::prelude::*;
 
+use crate::core::types::ChecklistItem;
 use crate::core::{DiffFile, DiffResult, ReviewNote};
 use crate::state::LazyprConfig;
 
@@ -23,6 +24,8 @@ pub struct ReviewFinalState {
     pub notes: Vec<ReviewNote>,
     /// The file list (used to map indices back to paths).
     pub files: Vec<DiffFile>,
+    /// Checklist state at the time the user quit.
+    pub checklist: HashMap<String, Vec<ChecklistItem>>,
 }
 
 /// Application state and main loop driver.
@@ -92,6 +95,7 @@ fn run_app(
                         viewed_files: review.viewed_files().clone(),
                         notes: review.notes().to_vec(),
                         files: review.files().to_vec(),
+                        checklist: review.checklist_state().clone(),
                     });
                 }
             }

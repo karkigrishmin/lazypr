@@ -4,6 +4,7 @@ use crate::cli::Cli;
 use crate::core::differ::interdiff::compute_interdiff;
 use crate::core::git::{current_branch, detect_base_branch, DiffProvider, Git2DiffProvider};
 use crate::core::ReviewSession;
+use crate::state::checklist;
 use crate::state::notes::load_notes;
 use crate::state::review_session::{latest_round, load_session, save_session, start_new_round};
 use crate::state::{init_store, LazyprConfig};
@@ -85,6 +86,14 @@ pub fn run(cli: &Cli) -> Result<()> {
     // Load notes
     let notes = load_notes(&repo_root, &branch)?;
 
+    // Load checklist
+    let checklist_rules = checklist::load_checklist_rules(&repo_root).unwrap_or_default();
+    let changed_paths: Vec<String> = diff.files.iter().map(|f| f.path.clone()).collect();
+    let mut checklist_state = checklist::resolve_checklist(&checklist_rules, &changed_paths);
+    if let Ok(saved) = checklist::load_checklist_state(&repo_root, &branch) {
+        checklist_state = checklist::merge_checklist_state(checklist_state, &saved);
+    }
+
     // Build review context
     let ctx = ReviewContext {
         notes,
@@ -92,6 +101,7 @@ pub fn run(cli: &Cli) -> Result<()> {
         viewed_files: viewed,
         repo_root: repo_root.clone(),
         branch_name: branch.clone(),
+        checklist: checklist_state,
     };
 
     // Run TUI — blocks until user quits
@@ -110,6 +120,9 @@ pub fn run(cli: &Cli) -> Result<()> {
 
     // Persist notes
     crate::state::notes::save_notes(&repo_root, &branch, &final_state.notes)?;
+
+    // Persist checklist state
+    checklist::save_checklist_state(&repo_root, &branch, &final_state.checklist)?;
 
     Ok(())
 }
