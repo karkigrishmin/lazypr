@@ -1,5 +1,32 @@
-/target
+# Build artifacts
+/target/
+debug/
+*.d
+*.rlib
+*.rmeta
+
+# LazyPR state (user-specific)
 .lazypr/
+
+# Editor files
 *.swp
 *.swo
+*~
+.vscode/
+.idea/
+*.iml
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+
+# Logs
+*.log
+
+# Backup files
+*.bak
+*.orig

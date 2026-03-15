@@ -70,30 +70,30 @@ fn impact_runs_analysis() {
 }
 
 #[test]
-fn inbox_prints_not_yet_implemented() {
+fn inbox_shows_coming_soon() {
     lazypr()
         .arg("inbox")
         .assert()
         .success()
-        .stdout(predicate::str::contains("not yet implemented"));
+        .stdout(predicate::str::contains("Coming soon"));
 }
 
 #[test]
-fn stats_prints_not_yet_implemented() {
+fn stats_shows_coming_soon() {
     lazypr()
         .arg("stats")
         .assert()
         .success()
-        .stdout(predicate::str::contains("not yet implemented"));
+        .stdout(predicate::str::contains("Coming soon"));
 }
 
 #[test]
-fn notes_prints_not_yet_implemented() {
+fn notes_shows_coming_soon() {
     lazypr()
         .arg("notes")
         .assert()
         .success()
-        .stdout(predicate::str::contains("not yet implemented"));
+        .stdout(predicate::str::contains("Coming soon"));
 }
 
 #[test]
