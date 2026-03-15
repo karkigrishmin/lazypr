@@ -9,9 +9,7 @@ use tui_input::Input;
 
 use crate::core::{DiffFile, DiffResult};
 use crate::tui::theme::Theme;
-use crate::tui::widgets::{
-    DiffViewLine, DiffViewWidget, FileTreeItem, FileTreeWidget, StatusBarWidget,
-};
+use crate::tui::widgets::{DiffViewWidget, FileTreeItem, FileTreeWidget, StatusBarWidget};
 
 use super::{Action, Screen};
 
@@ -91,19 +89,8 @@ impl ReviewScreen {
             DiffViewWidget::new(Vec::new(), String::new())
         } else {
             let file = &files[idx];
-            let lines: Vec<DiffViewLine> = file
-                .hunks
-                .iter()
-                .flat_map(|h| h.lines.iter())
-                .map(|l| DiffViewLine {
-                    kind: l.kind.clone(),
-                    content: l.content.clone(),
-                    old_line_no: l.old_line_no,
-                    new_line_no: l.new_line_no,
-                })
-                .collect();
+            let lines = file.hunks.iter().flat_map(|h| h.lines.clone()).collect();
 
-            // Extract file extension for syntax highlighting
             let extension = std::path::Path::new(&file.path)
                 .extension()
                 .and_then(|e| e.to_str())
