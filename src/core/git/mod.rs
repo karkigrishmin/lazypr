@@ -17,6 +17,8 @@ use self::blame::BlameInfo;
 pub use self::branch::{current_branch, detect_base_branch};
 pub use self::diff::Git2DiffProvider;
 #[allow(unused_imports)]
+pub use self::log::compute_file_churn;
+#[allow(unused_imports)]
 pub use self::status::working_tree_clean;
 
 /// Provides diff operations between two refs.
