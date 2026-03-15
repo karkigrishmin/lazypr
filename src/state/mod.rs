@@ -1,3 +1,4 @@
+pub mod checklist;
 pub mod config;
 pub mod notes;
 pub mod review_session;
