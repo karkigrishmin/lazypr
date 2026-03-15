@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
@@ -58,6 +56,7 @@ pub fn start_new_round(session: &mut ReviewSession, sha: &str) {
 }
 
 /// Add a file path to the latest round's `files_viewed` if not already present.
+#[allow(dead_code)]
 pub fn mark_file_viewed(session: &mut ReviewSession, file_path: &str) {
     if let Some(round) = session.reviews.last_mut() {
         if !round.files_viewed.iter().any(|f| f == file_path) {

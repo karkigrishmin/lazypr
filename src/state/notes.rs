@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
@@ -79,6 +77,7 @@ pub fn add_note(
 /// Delete a note by ID in memory. Returns `true` if a note was removed.
 ///
 /// Does NOT touch the filesystem.
+#[allow(dead_code)]
 pub fn delete_note(notes: &mut Vec<ReviewNote>, id: &str) -> bool {
     let len_before = notes.len();
     notes.retain(|n| n.id != id);

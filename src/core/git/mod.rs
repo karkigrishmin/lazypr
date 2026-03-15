@@ -14,7 +14,6 @@ use crate::core::types::DiffResult;
 use self::blame::BlameInfo;
 
 // Re-exports
-#[allow(unused_imports)]
 pub use self::branch::{current_branch, detect_base_branch};
 pub use self::diff::Git2DiffProvider;
 #[allow(unused_imports)]

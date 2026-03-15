@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::collections::HashMap;
 
 use xxhash_rust::xxh3::xxh3_64;
@@ -14,8 +12,10 @@ pub struct InterDiffResult {
     /// Files present in both but with different content.
     pub modified_files: Vec<String>,
     /// Files present in the old diff but not the new.
+    #[allow(dead_code)]
     pub removed_files: Vec<String>,
     /// Files present in both with identical content.
+    #[allow(dead_code)]
     pub unchanged_files: Vec<String>,
 }
 

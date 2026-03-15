@@ -159,20 +159,17 @@ impl ReviewScreen {
         self.note_editor.is_some()
     }
 
-    /// Get the set of viewed file indices (used by Task 7 session lifecycle).
-    #[allow(dead_code)]
+    /// Get the set of viewed file indices (used for session lifecycle persistence).
     pub fn viewed_files(&self) -> &HashSet<usize> {
         &self.viewed_files
     }
 
-    /// Get the review notes (used by Task 7 session lifecycle).
-    #[allow(dead_code)]
+    /// Get the review notes (used for session lifecycle persistence).
     pub fn notes(&self) -> &[ReviewNote] {
         &self.notes
     }
 
-    /// Get the current file list (used by Task 7 session lifecycle).
-    #[allow(dead_code)]
+    /// Get the current file list (used for session lifecycle persistence).
     pub fn files(&self) -> &[DiffFile] {
         &self.files
     }

@@ -1,3 +1,6 @@
+use std::collections::HashSet;
+use std::io;
+
 use anyhow::{Context, Result};
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
@@ -5,13 +8,22 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::prelude::*;
-use std::io;
 
-use crate::core::DiffResult;
+use crate::core::{DiffFile, DiffResult, ReviewNote};
 use crate::state::LazyprConfig;
 
 use self::app::App;
 use self::screens::ReviewContext;
+
+/// State extracted from the TUI when the user quits.
+pub struct ReviewFinalState {
+    /// Indices of files the user marked as viewed during this session.
+    pub viewed_files: HashSet<usize>,
+    /// Review notes at the time the user quit.
+    pub notes: Vec<ReviewNote>,
+    /// The file list (used to map indices back to paths).
+    pub files: Vec<DiffFile>,
+}
 
 /// Application state and main loop driver.
 pub mod app;
@@ -25,7 +37,9 @@ pub mod theme;
 pub mod widgets;
 
 /// Run the TUI application with the given diff data, configuration, and review context.
-pub fn run(diff: DiffResult, config: LazyprConfig, ctx: ReviewContext) -> Result<()> {
+///
+/// Returns the final state (viewed files, notes, file list) when the user quits.
+pub fn run(diff: DiffResult, config: LazyprConfig, ctx: ReviewContext) -> Result<ReviewFinalState> {
     // Setup terminal
     enable_raw_mode().context("failed to enable raw mode")?;
     let mut stdout = io::stdout();
@@ -60,7 +74,12 @@ pub fn run(diff: DiffResult, config: LazyprConfig, ctx: ReviewContext) -> Result
 }
 
 /// Main event loop: render, poll for events, dispatch to app.
-fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, app: &mut App) -> Result<()> {
+///
+/// Returns the final review state when the user triggers a quit action.
+fn run_app(
+    terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
+    app: &mut App,
+) -> Result<ReviewFinalState> {
     loop {
         terminal.draw(|frame| app.render(frame))?;
 
@@ -68,7 +87,12 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, app: &mut App)
             if let crossterm::event::Event::Key(key) = crossterm::event::read()? {
                 let action = app.handle_key(key);
                 if action == event::Action::Quit {
-                    return Ok(());
+                    let review = app.review_screen();
+                    return Ok(ReviewFinalState {
+                        viewed_files: review.viewed_files().clone(),
+                        notes: review.notes().to_vec(),
+                        files: review.files().to_vec(),
+                    });
                 }
             }
         }

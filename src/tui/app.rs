@@ -50,8 +50,7 @@ impl App {
         }
     }
 
-    /// Get a reference to the review screen (used by Task 7 session lifecycle).
-    #[allow(dead_code)]
+    /// Get a reference to the review screen (used for session lifecycle persistence).
     pub fn review_screen(&self) -> &ReviewScreen {
         &self.review_screen
     }
