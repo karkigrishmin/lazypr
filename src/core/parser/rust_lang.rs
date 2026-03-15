@@ -314,6 +314,9 @@ fn extract_return_type(rest: &str) -> Option<String> {
         }
     }
 
+    if close_offset + 1 > after_open.len() {
+        return None;
+    }
     let after_params = &after_open[close_offset + 1..];
     let arrow_pos = after_params.find("->")?;
     let after_arrow = after_params[arrow_pos + 2..].trim();

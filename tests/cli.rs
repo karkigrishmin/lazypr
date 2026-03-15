@@ -39,21 +39,31 @@ fn split_prints_not_yet_implemented() {
 }
 
 #[test]
-fn ghost_prints_not_yet_implemented() {
-    lazypr()
-        .arg("ghost")
-        .assert()
-        .success()
-        .stdout(predicate::str::contains("not yet implemented"));
+fn ghost_runs_analysis() {
+    // Ghost runs a real analysis; it may find warnings (exit 0) or errors (exit 1).
+    // We just verify it produces ghost-related output, not "not yet implemented".
+    let output = lazypr().arg("ghost").output().expect("ghost should run");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("Ghost analysis") || stdout.contains("No issues found"),
+        "expected ghost analysis output, got: {}",
+        stdout
+    );
 }
 
 #[test]
-fn impact_prints_not_yet_implemented() {
-    lazypr()
+fn impact_runs_analysis() {
+    // Impact runs a real analysis on the given file.
+    let output = lazypr()
         .args(["impact", "src/main.rs"])
-        .assert()
-        .success()
-        .stdout(predicate::str::contains("not yet implemented"));
+        .output()
+        .expect("impact should run");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("Impact analysis for"),
+        "expected impact analysis output, got: {}",
+        stdout
+    );
 }
 
 #[test]
