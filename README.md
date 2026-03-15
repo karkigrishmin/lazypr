@@ -1,6 +1,13 @@
 # lazypr
 
+[![CI](https://github.com/karkigrishmin/lazypr/actions/workflows/ci.yml/badge.svg)](https://github.com/karkigrishmin/lazypr/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Rust](https://img.shields.io/badge/Rust-2021-orange.svg)](https://www.rust-lang.org/)
+[![GitHub release](https://img.shields.io/github/v/release/karkigrishmin/lazypr)](https://github.com/karkigrishmin/lazypr/releases)
+
 **The lazygit of pull requests** — a free, open-source, terminal-native TUI tool built in Rust that makes PR review fast, intelligent, and beautiful. No AI, no cloud, no API keys.
+
+![lazypr review TUI](docs/demo-review.gif)
 
 ## The Problem
 
@@ -91,6 +98,47 @@ lazypr impact src/utils/helpers.ts
 
 # Split plan
 lazypr split --dry-run
+```
+
+## Example Output
+
+### Ghost Analysis — catch issues before you push
+
+![lazypr CLI commands](docs/demo-ghost.gif)
+
+```
+$ lazypr ghost
+
+Ghost analysis: feature/user-dashboard vs main
+
+WARNINGS (6):
+  [MISSING_TEST] src/components/Dashboard.tsx — no corresponding test file
+  [MISSING_TEST] src/utils/analytics.ts — no corresponding test file
+  [MISSING_TEST] src/hooks/useAuth.ts — no corresponding test file
+
+Summary: 0 errors, 6 warnings, 0 info
+```
+
+### Split Plan — auto-split big PRs
+
+```
+$ lazypr split --dry-run
+
+Split plan: 2 groups, 0 skipped files
+
+  Group 1: src (4 files, 112 lines)
+    src/hooks/useAuth.ts
+    src/components/UserProfile.tsx
+    src/components/StatsPanel.tsx
+    src/utils/analytics.ts
+
+  Group 2: src (4 files, 79 lines) [depends on: 1]
+    src/components/Dashboard.tsx
+    src/App.css
+    src/App.tsx
+    src/types/api.ts
+
+Validation: OK
 ```
 
 ## Commands
