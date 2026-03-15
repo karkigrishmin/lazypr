@@ -311,6 +311,7 @@ mod tests {
             stats: FileStats::default(),
             priority: ReviewPriority::Glance,
             priority_score: 0.0,
+            semantic_diff: None,
         }
     }
 

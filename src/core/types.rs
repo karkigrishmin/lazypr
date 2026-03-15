@@ -174,6 +174,9 @@ pub struct DiffFile {
     pub priority: ReviewPriority,
     /// Numeric priority score (0.0 -- 100.0+).
     pub priority_score: f64,
+    /// Semantic diff analysis (function-level changes). Populated by the analysis pipeline.
+    #[serde(default)]
+    pub semantic_diff: Option<SemanticDiffFile>,
 }
 
 /// Aggregate summary of an entire diff.
@@ -435,6 +438,86 @@ pub struct GhostResult {
 }
 
 // ---------------------------------------------------------------------------
+// Semantic diff types
+// ---------------------------------------------------------------------------
+
+/// Kind of change for a function between two file versions.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum FunctionChangeKind {
+    /// Function exists only in the new version.
+    Added,
+    /// Function exists only in the old version.
+    Deleted,
+    /// Function signature changed (params or return type differ).
+    SignatureChanged,
+    /// Function body changed (same signature, but code differs).
+    BodyChanged,
+}
+
+/// A structural change detected for a single function.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FunctionChange {
+    /// Function name.
+    pub name: String,
+    /// Kind of change.
+    pub kind: FunctionChangeKind,
+    /// Line number (in new file for Added/Changed, in old file for Deleted).
+    pub line: u32,
+    /// Old signature, if applicable.
+    pub old_signature: Option<FunctionSignature>,
+    /// New signature, if applicable.
+    pub new_signature: Option<FunctionSignature>,
+}
+
+/// Summary of structural changes for a single file.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct SemanticDiffFile {
+    /// All function-level changes detected.
+    pub changes: Vec<FunctionChange>,
+}
+
+// ---------------------------------------------------------------------------
+// Checklist types
+// ---------------------------------------------------------------------------
+
+/// A rule from the project's checklist configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChecklistRule {
+    /// Glob pattern matching file paths (e.g. "src/hooks/*").
+    pub when: String,
+    /// Review checks to present when the pattern matches.
+    pub checks: Vec<String>,
+}
+
+/// A resolved checklist item for a specific file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChecklistItem {
+    /// The check text (e.g. "Tests added?").
+    pub text: String,
+    /// Whether the reviewer has checked this off.
+    pub checked: bool,
+    /// The glob pattern that triggered this check.
+    pub source_pattern: String,
+}
+
+// ---------------------------------------------------------------------------
+// File churn / archaeology types
+// ---------------------------------------------------------------------------
+
+/// File-level churn data from git history.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileChurn {
+    /// File path.
+    pub path: String,
+    /// Number of commits touching this file in the lookback period.
+    pub commit_count: usize,
+    /// Number of distinct authors.
+    pub author_count: usize,
+    /// Computed risk multiplier (1.0 = average).
+    pub risk_multiplier: f64,
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
@@ -487,6 +570,7 @@ mod tests {
             },
             priority: ReviewPriority::Deep,
             priority_score: 85.0,
+            semantic_diff: None,
         };
         round_trip(&file);
     }
@@ -563,6 +647,25 @@ mod tests {
         let r = DiffResult::default();
         assert!(r.base_ref.is_empty());
         assert!(r.files.is_empty());
+    }
+
+    #[test]
+    fn round_trip_semantic_diff() {
+        let sd = SemanticDiffFile {
+            changes: vec![FunctionChange {
+                name: "greet".to_string(),
+                kind: FunctionChangeKind::Added,
+                line: 10,
+                old_signature: None,
+                new_signature: Some(FunctionSignature {
+                    name: "greet".to_string(),
+                    params: vec!["name".to_string()],
+                    return_type: Some("String".to_string()),
+                    line: 10,
+                }),
+            }],
+        };
+        round_trip(&sd);
     }
 
     #[test]

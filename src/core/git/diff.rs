@@ -41,6 +41,23 @@ impl Git2DiffProvider {
     pub fn repo(&self) -> &git2::Repository {
         &self.repo
     }
+
+    /// Read the content of a file at a specific git ref (e.g. "main", "abc123").
+    /// Returns None if the file does not exist at that ref.
+    #[allow(dead_code)]
+    pub fn file_at_ref(&self, refspec: &str, path: &str) -> Result<Option<String>> {
+        let spec = format!("{}:{}", refspec, path);
+        match self.repo.revparse_single(&spec) {
+            Ok(obj) => {
+                let blob = obj
+                    .peel_to_blob()
+                    .with_context(|| format!("{} is not a blob", spec))?;
+                Ok(Some(String::from_utf8_lossy(blob.content()).to_string()))
+            }
+            Err(e) if e.code() == git2::ErrorCode::NotFound => Ok(None),
+            Err(e) => Err(anyhow::Error::from(e).context(format!("failed to read {}", spec))),
+        }
+    }
 }
 
 impl DiffProvider for Git2DiffProvider {
@@ -117,6 +134,7 @@ fn build_diff_result(diff: &git2::Diff<'_>, base: &str, head: &str) -> Result<Di
             stats: FileStats::default(),
             priority: ReviewPriority::Glance,
             priority_score: 0.0,
+            semantic_diff: None,
         });
     }
 

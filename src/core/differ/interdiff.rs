@@ -113,6 +113,7 @@ mod tests {
             },
             priority: ReviewPriority::Scan,
             priority_score: 10.0,
+            semantic_diff: None,
         }
     }
 

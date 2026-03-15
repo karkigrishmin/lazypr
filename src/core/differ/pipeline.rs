@@ -110,6 +110,7 @@ mod tests {
                     },
                     priority: ReviewPriority::Glance,
                     priority_score: 0.0,
+                    semantic_diff: None,
                 },
                 DiffFile {
                     path: "src/main.rs".into(),
@@ -138,6 +139,7 @@ mod tests {
                     },
                     priority: ReviewPriority::Glance,
                     priority_score: 0.0,
+                    semantic_diff: None,
                 },
             ],
             summary: DiffSummary::default(),
@@ -237,6 +239,7 @@ mod tests {
                     },
                     priority: ReviewPriority::Glance,
                     priority_score: 0.0,
+                    semantic_diff: None,
                 },
                 DiffFile {
                     path: "src/new.rs".into(),
@@ -258,6 +261,7 @@ mod tests {
                     },
                     priority: ReviewPriority::Glance,
                     priority_score: 0.0,
+                    semantic_diff: None,
                 },
             ],
             summary: DiffSummary::default(),
