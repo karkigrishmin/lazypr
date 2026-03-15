@@ -29,7 +29,7 @@ pub fn run(cli: &Cli, dry_run: bool, prefix: String, execute: bool) -> Result<()
     let mut diff = provider
         .diff(&base, "HEAD")
         .context("failed to compute diff")?;
-    crate::core::differ::pipeline::analyze(&mut diff, &config.review);
+    crate::core::differ::pipeline::analyze(&mut diff, &config.review, Some(&provider));
 
     // Parse repo files and build dependency graph
     let parsed = parse_repo_files(&repo_root).context("failed to parse repository files")?;

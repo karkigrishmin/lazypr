@@ -31,7 +31,7 @@ pub fn run(cli: &Cli) -> Result<()> {
     let mut diff = provider
         .diff(&base, "HEAD")
         .context("failed to compute diff")?;
-    crate::core::differ::pipeline::analyze(&mut diff, &config.review);
+    crate::core::differ::pipeline::analyze(&mut diff, &config.review, Some(&provider));
 
     // Parse all repo files
     let parsed_files = parse_repo_files(&repo_root).context("failed to parse repository files")?;

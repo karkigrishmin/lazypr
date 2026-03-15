@@ -41,7 +41,7 @@ pub fn run(cli: &Cli) -> Result<()> {
     let mut diff = provider
         .diff(&base, "HEAD")
         .context("failed to compute diff")?;
-    crate::core::differ::pipeline::analyze(&mut diff, &config.review);
+    crate::core::differ::pipeline::analyze(&mut diff, &config.review, Some(&provider));
 
     if cli.json {
         // JSON output mode

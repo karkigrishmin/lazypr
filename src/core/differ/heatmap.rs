@@ -34,7 +34,7 @@ pub fn count_logic_lines(hunks: &[Hunk]) -> (usize, usize) {
     (new_logic, modified_logic)
 }
 
-pub fn score_file(file: &DiffFile) -> (f64, ReviewPriority) {
+pub fn score_file(file: &DiffFile, risk: f64) -> (f64, ReviewPriority) {
     let weight = category_weight(&file.category);
     if weight == 0.0 {
         return (0.0, ReviewPriority::Skip);
@@ -42,7 +42,6 @@ pub fn score_file(file: &DiffFile) -> (f64, ReviewPriority) {
 
     let (new_logic, modified_logic) = count_logic_lines(&file.hunks);
     let logic_score = (new_logic * 3 + modified_logic * 2) as f64;
-    let risk = 1.0_f64;
     let priority_score = logic_score * weight * risk;
 
     let priority = if priority_score > 100.0 {
@@ -172,7 +171,7 @@ mod tests {
                 50,
             )],
         );
-        let (score, priority) = score_file(&file);
+        let (score, priority) = score_file(&file, 1.0);
         assert_eq!(score, 0.0);
         assert_eq!(priority, ReviewPriority::Skip);
     }
@@ -187,7 +186,7 @@ mod tests {
                 0,
             )],
         );
-        let (score, priority) = score_file(&file);
+        let (score, priority) = score_file(&file, 1.0);
         assert!(score > 100.0);
         assert_eq!(priority, ReviewPriority::Deep);
     }
@@ -202,7 +201,7 @@ mod tests {
                 0,
             )],
         );
-        let (_, priority) = score_file(&file);
+        let (_, priority) = score_file(&file, 1.0);
         assert_eq!(priority, ReviewPriority::Scan);
     }
 
@@ -216,7 +215,7 @@ mod tests {
                 0,
             )],
         );
-        let (_, priority) = score_file(&file);
+        let (_, priority) = score_file(&file, 1.0);
         assert_eq!(priority, ReviewPriority::Glance);
     }
 }
