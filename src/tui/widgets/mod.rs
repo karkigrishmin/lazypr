@@ -13,6 +13,6 @@ pub mod progress_bar;
 /// Status bar widget for displaying keybindings.
 pub mod status_bar;
 
-pub use diff_view::DiffViewWidget;
+pub use diff_view::{DiffViewLine, DiffViewWidget};
 pub use file_tree::{FileTreeItem, FileTreeWidget};
 pub use status_bar::StatusBarWidget;

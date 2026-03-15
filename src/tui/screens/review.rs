@@ -1,6 +1,7 @@
+use std::cell::Cell;
 use std::collections::HashSet;
 
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::prelude::*;
 use ratatui::widgets::{Block, Borders, Paragraph};
 use tui_input::backend::crossterm::EventHandler;
@@ -8,7 +9,9 @@ use tui_input::Input;
 
 use crate::core::{DiffFile, DiffResult};
 use crate::tui::theme::Theme;
-use crate::tui::widgets::{DiffViewWidget, FileTreeItem, FileTreeWidget, StatusBarWidget};
+use crate::tui::widgets::{
+    DiffViewLine, DiffViewWidget, FileTreeItem, FileTreeWidget, StatusBarWidget,
+};
 
 use super::{Action, Screen};
 
@@ -40,6 +43,8 @@ pub struct ReviewScreen {
     search_query: String,
     /// Mapping from filtered indices to original file indices (when search is active).
     filtered_indices: Option<Vec<usize>>,
+    /// Last rendered diff pane area (for half-page scroll calculations).
+    last_diff_area: Cell<Rect>,
 }
 
 impl ReviewScreen {
@@ -71,6 +76,7 @@ impl ReviewScreen {
             search_input: Input::default(),
             search_query: String::new(),
             filtered_indices: None,
+            last_diff_area: Cell::new(Rect::default()),
         }
     }
 
@@ -82,15 +88,29 @@ impl ReviewScreen {
     /// Build a DiffViewWidget for the file at the given index.
     fn build_diff_view_for_file(files: &[DiffFile], idx: usize) -> DiffViewWidget {
         if files.is_empty() || idx >= files.len() {
-            DiffViewWidget::new(Vec::new())
+            DiffViewWidget::new(Vec::new(), String::new())
         } else {
-            let lines: Vec<(crate::core::LineKind, String)> = files[idx]
+            let file = &files[idx];
+            let lines: Vec<DiffViewLine> = file
                 .hunks
                 .iter()
                 .flat_map(|h| h.lines.iter())
-                .map(|l| (l.kind.clone(), l.content.clone()))
+                .map(|l| DiffViewLine {
+                    kind: l.kind.clone(),
+                    content: l.content.clone(),
+                    old_line_no: l.old_line_no,
+                    new_line_no: l.new_line_no,
+                })
                 .collect();
-            DiffViewWidget::new(lines)
+
+            // Extract file extension for syntax highlighting
+            let extension = std::path::Path::new(&file.path)
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("")
+                .to_string();
+
+            DiffViewWidget::new(lines, extension)
         }
     }
 
@@ -269,6 +289,40 @@ impl Screen for ReviewScreen {
                     Action::None
                 }
             }
+            KeyCode::Char('d') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                if self.active_pane == Pane::DiffView {
+                    let vh = self.diff_view.visible_height(self.last_diff_area.get());
+                    self.diff_view.scroll_half_page_down(vh);
+                    Action::ScrollDown
+                } else {
+                    Action::None
+                }
+            }
+            KeyCode::Char('u') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                if self.active_pane == Pane::DiffView {
+                    let vh = self.diff_view.visible_height(self.last_diff_area.get());
+                    self.diff_view.scroll_half_page_up(vh);
+                    Action::ScrollUp
+                } else {
+                    Action::None
+                }
+            }
+            KeyCode::Char('g') => {
+                if self.active_pane == Pane::DiffView {
+                    self.diff_view.scroll_to_top();
+                    Action::ScrollUp
+                } else {
+                    Action::None
+                }
+            }
+            KeyCode::Char('G') => {
+                if self.active_pane == Pane::DiffView {
+                    self.diff_view.scroll_to_bottom();
+                    Action::ScrollDown
+                } else {
+                    Action::None
+                }
+            }
             KeyCode::Char('/') => {
                 if self.active_pane == Pane::FileTree {
                     self.search_mode = true;
@@ -334,6 +388,7 @@ impl Screen for ReviewScreen {
 
         // Diff view pane
         let diff_view_focused = self.active_pane == Pane::DiffView;
+        self.last_diff_area.set(panes[1]);
         self.diff_view
             .render(frame, panes[1], theme, diff_view_focused);
 
@@ -343,6 +398,8 @@ impl Screen for ReviewScreen {
             ("?", "help"),
             ("Tab", "switch pane"),
             ("j/k", "navigate"),
+            ("C-d/C-u", "half-page"),
+            ("g/G", "top/bottom"),
             ("s", "skip"),
             ("Enter", "select"),
             ("/", "search"),
